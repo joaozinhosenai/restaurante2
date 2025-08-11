@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pedido - Larica dos Guri</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    h1 {
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #ff9900;
+      color: white;
+    }
+    tfoot td {
+      font-weight: bold;
+    }
+    button {
+      background-color: #ff9900;
+      border: none;
+      padding: 6px 12px;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #e68a00;
+    }
+    .produtos {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .produto-card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      width: 200px;
+      padding: 10px;
+      box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
+    }
+    .produto-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .produto-card h3 {
+      margin: 8px 0 4px;
+    }
+    .produto-card p {
+      font-size: 0.9em;
+      color: #555;
+    }
+    .preco {
+      font-weight: bold;
+      margin: 6px 0;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Faça seu Pedido</h1>
+
+  <div class="produtos" id="produtos-lista">
+    <!-- Produtos vão ser inseridos aqui pelo JS -->
+  </div>
+
+  <h2>Seu Carrinho</h2>
+  <table id="tabela-pedido">
+    <thead>
+      <tr>
+        <th>Produto</th>
+        <th>Quantidade</th>
+        <th>Preço Unit.</th>
+        <th>Total</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Itens do pedido -->
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="3">Valor Total</td>
+        <td id="valor-total">R$ 0,00</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <script>
+    const produtos = [
+      { nome: "X-Burger", preco: 15.00, descricao: "Pão, carne, queijo, alface e tomate.", img: "https://img.uenicdn.com/image/upload/v1543484687/service_images/shutterstock_1040760661.jpg" },
+      { nome: "Cheeseburger", preco: 12.50, descricao: "Hambúrguer com queijo cheddar, alface e tomate.", img: "https://blog.precolandia.com.br/wp-content/uploads/2025/05/Hamburguer-com-bacon.jpg" },
+      { nome: "Milkshake", preco: 10.00, descricao: "Milkshake de chocolate cremoso.", img: "https://www.academiaassai.com.br/sites/default/files/styles/noticia_1020x640/public/shake_capa.jpg?itok=6oFdpmdn" },
+      { nome: "Hot Dog", preco: 8.00, descricao: "Cachorro-quente com salsicha, ketchup e mostarda.", img: "https://cdn.pixabay.com/photo/2016/03/05/19/02/hotdog-1238247_1280.jpg" },
+      { nome: "Refrigerante Lata", preco: 5.00, descricao: "Lata de refrigerante gelado 350ml.", img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGGfrUpVVh37A20q9d1-XNr8a5VMTJOa1yDw&s" }
+    ];
+
+    const carrinho = [];
+
+    const produtosLista = document.getElementById("produtos-lista");
+    const tabelaBody = document.querySelector("#tabela-pedido tbody");
+    const valorTotalEl = document.getElementById("valor-total");
+
+    // Exibir produtos
+    produtos.forEach(produto => {
+      const card = document.createElement("div");
+      card.className = "produto-card";
+
+      card.innerHTML = `
+        <img src="${produto.img}" alt="${produto.nome}">
+        <h3>${produto.nome}</h3>
+        <p>${produto.descricao}</p>
+        <p class="preco">R$ ${produto.preco.toFixed(2)}</p>
+        <button>Adicionar</button>
+      `;
+
+      const btn = card.querySelector("button");
+      btn.addEventListener("click", () => adicionarAoCarrinho(produto));
+
+      produtosLista.appendChild(card);
+    });
+
+    function adicionarAoCarrinho(produto) {
+      const item = carrinho.find(i => i.nome === produto.nome);
+      if (item) {
+        item.quantidade++;
+      } else {
+        carrinho.push({ ...produto, quantidade: 1 });
+      }
+      atualizarTabela();
+    }
+
+    function removerDoCarrinho(nome) {
+      const index = carrinho.findIndex(i => i.nome === nome);
+      if (index > -1) {
+        carrinho.splice(index, 1);
+      }
+      atualizarTabela();
+    }
+
+    function atualizarTabela() {
+      tabelaBody.innerHTML = "";
+      let valorTotal = 0;
+
+      carrinho.forEach(item => {
+        const tr = document.createElement("tr");
+        const totalItem = item.preco * item.quantidade;
+        valorTotal += totalItem;
+
+        tr.innerHTML = `
+          <td>${item.nome}</td>
+          <td>${item.quantidade}</td>
+          <td>R$ ${item.preco.toFixed(2)}</td>
+          <td>R$ ${totalItem.toFixed(2)}</td>
+          <td><button onclick="removerDoCarrinho('${item.nome}')">Remover</button></td>
+        `;
+
+        tabelaBody.appendChild(tr);
+      });
+
+      valorTotalEl.textContent = `R$ ${valorTotal.toFixed(2)}`;
+    }
+  </script>
+
+</body>
+</html>
+<section id="pagamento-pix" class="section">
+  <h2>Pagamento via Pix</h2>
+  <p>Escaneie o QR Code abaixo para pagar seu pedido.</p>
+  <div id="qr-code-container">
+    <img src="https://api.qrserver.com/v1/create-qr-code/?data=00020126580014br.gov.bcb.pix0114seu-pix-chave5204000053039865406100.005802BR5913Larica%20dos%20Guri6009Sao%20Paulo62070503***6304ABCD&size=200x200" alt="QR Code Pix" />
+  </div>
+</section>
+<!-- Botão finalizar pedido -->
+<div style="margin-top: 20px;">
+  <button id="btn-finalizar">Finalizar Pedido</button>
+</div>
+
+<!-- Formulário de finalização oculto inicialmente -->
+<div id="form-finalizar" style="margin-top: 20px; display: none; background: #fff; padding: 15px; border-radius: 6px; max-width: 400px;">
+  <h3>Finalize seu pedido</h3>
+  <form id="form-pedido">
+    <label>
+      Nome:<br/>
+      <input type="text" id="nome-cliente" required />
+    </label><br/><br/>
+    <label>
+      Telefone:<br/>
+      <input type="tel" id="telefone-cliente" required />
+    </label><br/><br/>
+    <label>
+      Endereço:<br/>
+      <textarea id="endereco-cliente" required></textarea>
+    </label><br/><br/>
+    <button type="submit">Enviar Pedido</button>
+    <button type="button" id="btn-cancelar" style="margin-left: 10px;">Cancelar</button>
+  </form>
+</div>
+
+<!-- Mensagem de confirmação -->
+<div id="mensagem-confirmacao" style="margin-top: 20px; display: none; background: #d4edda; color: #155724; padding: 15px; border-radius: 6px; max-width: 400px;">
+</div>
+
+<script>
+  const btnFinalizar = document.getElementById("btn-finalizar");
+  const formFinalizar = document.getElementById("form-finalizar");
+  const mensagemConfirmacao = document.getElementById("mensagem-confirmacao");
+  const formPedido = document.getElementById("form-pedido");
+  const btnCancelar = document.getElementById("btn-cancelar");
+
+  btnFinalizar.addEventListener("click", () => {
+    if (carrinho.length === 0) {
+      alert("Seu carrinho está vazio. Adicione produtos antes de finalizar o pedido.");
+      return;
+    }
+    formFinalizar.style.display = "block";
+    mensagemConfirmacao.style.display = "none";
+  });
+
+  btnCancelar.addEventListener("click", () => {
+    formFinalizar.style.display = "none";
+  });
+
+  formPedido.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const nome = document.getElementById("nome-cliente").value.trim();
+    const telefone = document.getElementById("telefone-cliente").value.trim();
+    const endereco = document.getElementById("endereco-cliente").value.trim();
+
+    if (!nome || !telefone || !endereco) {
+      alert("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    // Aqui você pode enviar os dados para um servidor via fetch/ajax, mas agora só vai mostrar mensagem
+
+    // Simular envio
+    formFinalizar.style.display = "none";
+    mensagemConfirmacao.style.display = "block";
+
+    mensagemConfirmacao.innerHTML = `
+      <strong>Pedido confirmado!</strong><br/>
+      Obrigado, ${nome}.<br/>
+      Entraremos em contato pelo telefone ${telefone}.<br/>
+      Seu pedido será entregue em:<br/>
+      ${endereco}<br/>
+      <br/>
+      <em>Valor total: R$ ${valorTotalEl.textContent.replace('R$ ', '')}</em>
+    `;
+
+    // Limpar carrinho e atualizar tabela
+    carrinho.length = 0;
+    atualizarTabela();
+
+    // Limpar formulário
+    formPedido.reset();
+  });
+</script>
